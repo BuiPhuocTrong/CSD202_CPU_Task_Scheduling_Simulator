@@ -29,7 +29,7 @@ IncludeVersionInfo=0
 SupportXPThemes=0
 CompilerSet=0
 CompilerSettings=0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;16;0;0;0
-UnitCount=15
+UnitCount=14
 
 [VersionInfo]
 Major=1
@@ -51,25 +51,16 @@ AutoIncBuildNr=0
 SyncProduct=1
 
 [Unit1]
-FileName=Untitled1
+FileName=header\consoleInput.h
 Folder=header
 Compile=1
 Link=1
 Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
+CompileCpp=1
 
 [Unit2]
-FileName=header\consoleInput.h
-CompileCpp=1
-Folder=header
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit3]
 FileName=header\consoleOutput.h
 CompileCpp=1
 Folder=header
@@ -79,7 +70,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit4]
+[Unit3]
 FileName=header\constants.h
 CompileCpp=1
 Folder=header
@@ -89,7 +80,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit5]
+[Unit4]
 FileName=header\process.h
 CompileCpp=1
 Folder=header
@@ -99,7 +90,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit6]
+[Unit5]
 FileName=header\queue.h
 CompileCpp=1
 Folder=header
@@ -109,7 +100,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit7]
+[Unit6]
 FileName=header\scheduler.h
 CompileCpp=1
 Folder=header
@@ -119,7 +110,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit8]
+[Unit7]
 FileName=header\validation.h
 CompileCpp=1
 Folder=header
@@ -129,7 +120,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit9]
+[Unit8]
 FileName=src\consoleInput.cpp
 CompileCpp=1
 Folder=src
@@ -139,7 +130,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit10]
+[Unit9]
 FileName=src\consoleOutput.cpp
 CompileCpp=1
 Folder=src
@@ -149,7 +140,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit11]
+[Unit10]
 FileName=src\main.cpp
 CompileCpp=1
 Folder=src
@@ -159,7 +150,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit12]
+[Unit11]
 FileName=src\process.cpp
 CompileCpp=1
 Folder=src
@@ -169,7 +160,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit13]
+[Unit12]
 FileName=src\queue.cpp
 CompileCpp=1
 Folder=src
@@ -179,8 +170,18 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit14]
+[Unit13]
 FileName=src\scheduler.cpp
+CompileCpp=1
+Folder=src
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit14]
+FileName=src\validation.cpp
 CompileCpp=1
 Folder=src
 Compile=1
