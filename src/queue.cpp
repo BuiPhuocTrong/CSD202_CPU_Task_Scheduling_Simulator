@@ -1,4 +1,6 @@
 #include "../header/queue.h"
+#include <iostream>
+using namespace std;
 
 //Queue Node
 QueueNode::QueueNode(const Process& process) : data(process), next(nullptr) {}
@@ -6,225 +8,228 @@ QueueNode::QueueNode(const Process& process) : data(process), next(nullptr) {}
 Queue::Queue() : front(nullptr), rear(nullptr), count(0) {}
 
 Queue::~Queue() {
-    clear();
+	clear();
 }
 
 bool Queue::isEmpty() const {
-    return front == nullptr && count == 0;
+	return front == nullptr && count == 0;
 }
 
 int Queue::size() const {
-    return count;
+	return count;
 }
 
-void Queue::clear()
-{
-    QueueNode* current = front;
+void Queue::clear() {
+	QueueNode* current = front;
 
-    while (current != nullptr){
-        QueueNode* temp = current;
-        current = current->next;
-        delete temp;
-    }
-    
+	while (current != nullptr) {
+		QueueNode* temp = current;
+		current = current->next;
+		delete temp;
+	}
+
 	//restart
-    front = nullptr;
-    rear = nullptr;
-    count = 0;
+	front = nullptr;
+	rear = nullptr;
+	count = 0;
 }
 
-QueueNode* Queue::getFront() const{
-    return front;
+QueueNode* Queue::getFront() const {
+	return front;
 }
 
-QueueNode* Queue::getRear() const{
-    return rear;
+QueueNode* Queue::getRear() const {
+	return rear;
 }
 
-bool Queue::removeById(int id)
-{
-    if (isEmpty())
-        return false;
+bool Queue::removeById(int id) {
+	if (isEmpty())
+		return false;
 
-    // Xóa node đầu
-    if (front->data.id == id)
-    {
-        QueueNode* temp = front;
+	// Xóa node đầu
+	if (front->data.id == id) {
+		QueueNode* temp = front;
 
-        front = front->next;
+		front = front->next;
 
-        delete temp;
-        count--;
+		delete temp;
+		count--;
 
-        if (count == 0)
-            rear = nullptr;
+		if (count == 0)
+			rear = nullptr;
 
-        return true;
-    }
+		return true;
+	}
 
-    // Tìm node cần xóa
-    QueueNode* temp = front;
+	// Tìm node cần xóa
+	QueueNode* temp = front;
 
-    while (temp->next != nullptr)
-    {
-        if (temp->next->data.id == id)
-        {
-            QueueNode* cur = temp->next;
+	while (temp->next != nullptr) {
+		if (temp->next->data.id == id) {
+			QueueNode* cur = temp->next;
 
-            temp->next = cur->next;
+			temp->next = cur->next;
 
-            // Nếu xóa node cuối
-            if (cur == rear)
-                rear = temp;
+			// Nếu xóa node cuối
+			if (cur == rear)
+				rear = temp;
 
-            delete cur;
-            count--;
+			delete cur;
+			count--;
 
-            return true;
-        }
+			return true;
+		}
 
-        temp = temp->next;
-    }
+		temp = temp->next;
+	}
 
-    return false;
+	return false;
 }
 
-const Process* Queue::findById(int id) const{
-    const QueueNode* temp = front;
+const Process* Queue::findById(int id) const {
+	const QueueNode* temp = front;
 
-    while (temp != nullptr)
-    {
-        if (temp->data.id == id)
-        {
-            return &temp->data;
-        }
+	while (temp != nullptr) {
+		if (temp->data.id == id) {
+			return &temp->data;
+		}
 
-        temp = temp->next;
-    }
+		temp = temp->next;
+	}
 
-    return nullptr;
+	return nullptr;
 }
 
-const Process* Queue::findArrivedProcess(int currentTime) const{
-    const QueueNode* temp = front;
+const Process* Queue::findArrivedProcess(int currentTime) const {
+	const QueueNode* temp = front;
 
-    while (temp != nullptr){
-        if (temp->data.arrivalTime <= currentTime)
-            return &temp->data;
+	while (temp != nullptr) {
+		if (temp->data.arrivalTime <= currentTime)
+			return &temp->data;
 
-        temp = temp->next;
-    }
-    return nullptr;
+		temp = temp->next;
+	}
+	return nullptr;
 }
 
 //NORMAL QUEUE
-void NormalQueue::enqueue(const Process& process){
+void NormalQueue::enqueue(const Process& process) {
     QueueNode* newNode = new QueueNode(process);
 
-    if (isEmpty()){
+    // Hàng đợi rỗng
+    if (isEmpty()) {
         front = rear = newNode;
     }
-    else{
-    	//Add last SLL
-        rear->next = newNode;
-        rear = newNode;
-    }
-
-    count++;
-}
-
-Process NormalQueue::dequeue(){
-    QueueNode* temp = front;
-
-	//Save data to return removed object information
-    Process process = temp->data;
-
-    front = front->next;
-    delete temp;
-    count--;
-
-    if (count == 0){
-        rear = nullptr;
-    }
-
-    return process;
-}
-
-void PriorityQueue::insert(const Process& process)
-{
-    QueueNode* newNode = new QueueNode(process);
-
-    // Queue đang rỗng
-    if (isEmpty())
-    {
-        front = newNode;
-        rear = newNode;
-        count++;
-        return;
-    }
-
-    /*
-        newNode phải đứng trước front nếu:
-
-        1. priority cao hơn
-        hoặc
-        2. cùng priority nhưng arrivalTime nhỏ hơn
-    */
-    if (process.priority > front->data.priority ||
-        (process.priority == front->data.priority &&
-         process.arrivalTime < front->data.arrivalTime))
-    {
+    // Thêm vào đầu nếu đến sớm hơn front
+    else if (process.arrivalTime < front->data.arrivalTime) {
         newNode->next = front;
         front = newNode;
-        count++;
-        return;
     }
+    // Thêm vào giữa hoặc cuối
+    else {
+        QueueNode* current = front;
 
-    // Tìm vị trí thích hợp
-    QueueNode* current = front;
-
-    while (current->next != nullptr)
-    {
-        QueueNode* nextNode = current->next;
-
-        if (process.priority > nextNode->data.priority ||
-            (process.priority == nextNode->data.priority &&
-             process.arrivalTime < nextNode->data.arrivalTime))
-        {
-            break;
+        while (current->next != nullptr &&
+               current->next->data.arrivalTime <= process.arrivalTime) {
+            current = current->next;
         }
 
-        current = current->next;
-    }
+        newNode->next = current->next;
+        current->next = newNode;
 
-    newNode->next = current->next;
-    current->next = newNode;
-
-    // Nếu thêm vào cuối thì cập nhật rear
-    if (newNode->next == nullptr)
-    {
-        rear = newNode;
+        if (newNode->next == nullptr) {
+            rear = newNode;
+        }
     }
 
     count++;
 }
 
-Process PriorityQueue::dequeue(){
-    QueueNode* temp = front;
+Process NormalQueue::dequeue() {
+	QueueNode* temp = front;
 
-    Process process = temp->data;
+	//Save data to return removed object information
+	Process process = temp->data;
 
-    front = front->next;
+	front = front->next;
+	delete temp;
+	count--;
 
-    delete temp;
+	if (count == 0) {
+		rear = nullptr;
+	}
 
-    count--;
+	return process;
+}
 
-    if (count == 0)
-    {
-        rear = nullptr;
-    }
+void PriorityQueue::insert(const Process& process) {
+	QueueNode* newNode = new QueueNode(process);
 
-    return process;
+	// Queue đang rỗng
+	if (isEmpty()) {
+		front = newNode;
+		rear = newNode;
+		count++;
+		return;
+	}
+
+	/*
+	    newNode phải đứng trước front nếu:
+
+	    1. priority cao hơn
+	    hoặc
+	    2. cùng priority nhưng arrivalTime nhỏ hơn
+	*/
+	if (process.priority > front->data.priority ||
+	        (process.priority == front->data.priority &&
+	         process.arrivalTime < front->data.arrivalTime)) {
+		newNode->next = front;
+		front = newNode;
+		count++;
+		return;
+	}
+
+	// Tìm vị trí thích hợp
+	QueueNode* current = front;
+
+	while (current->next != nullptr) {
+		QueueNode* nextNode = current->next;
+
+		if (process.priority > nextNode->data.priority ||
+		        (process.priority == nextNode->data.priority &&
+		         process.arrivalTime < nextNode->data.arrivalTime)) {
+			break;
+		}
+
+		current = current->next;
+	}
+
+	newNode->next = current->next;
+	current->next = newNode;
+
+	// Nếu thêm vào cuối thì cập nhật rear
+	if (newNode->next == nullptr) {
+		rear = newNode;
+	}
+
+	count++;
+}
+
+Process PriorityQueue::dequeue() {
+	QueueNode* temp = front;
+
+	Process process = temp->data;
+
+	front = front->next;
+
+	delete temp;
+
+	count--;
+
+	if (count == 0) {
+		rear = nullptr;
+	}
+
+	return process;
 }
 

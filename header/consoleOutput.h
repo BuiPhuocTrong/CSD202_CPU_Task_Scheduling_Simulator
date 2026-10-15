@@ -4,5 +4,4 @@
 #include "scheduler.h"
 
 void showMenu();
-void printTitle(const std::string& title);
 #endif

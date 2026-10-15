@@ -5,6 +5,16 @@
 #include "process.h"
 #include "queue.h"
 
+/*
+This file including:
+1/ struct HistoryRecord
+2/ class Scheduler
+
+Inside class Scheduler:
+- 2 queue nq pq
+- vector<HistoryRecord> history
+*/
+
 struct HistoryRecord{
     Process process;
     int startTime;
@@ -15,20 +25,18 @@ class Scheduler {
 private:
     NormalQueue nq;
     PriorityQueue pq;
-    std::vector<HistoryRecord> history;; //use vector for history storage then for DISPLAY
+    std::vector<HistoryRecord> history; //use vector for history storage then for DISPLAY
     
     int currentTime; //use to compare with arrival time
     int timeQuantum; //can use set feature to re-set
 
     void resetSimulation();
-	void addArrivedNormalTasks(
-        vector<int>& normalReady,
-        vector<bool>& inNormalReady,
-        const vector<Process>& processes
-    );
 
 public:
     Scheduler(int quantum = 2);
+    
+	bool loadFromFile();
+	bool saveToFile() const;
 
 	//Setter,getter
     void setTimeQuantum(int quantum); //help for F6

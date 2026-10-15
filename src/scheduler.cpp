@@ -1,5 +1,10 @@
 #include <iostream>
 #include <iomanip>
+#include <fstream>
+#include <vector>
+#include <string>
+#include <climits>
+
 #include "../header/scheduler.h"
 #include "../header/constants.h"
 #include "../header/consoleOutput.h"
@@ -54,8 +59,206 @@ bool Scheduler::isEmptyBothQueue(){
 	return nq.size()==0 && pq.size()==0;
 }
 
+
+#include <fstream>
+using namespace std;
+
+bool writeProcess(ofstream& file, const Process& p){
+    if (p.id <= 0 || p.arrivalTime < 0 || p.burstTime <= 0 || p.priority < 0){
+        return false;
+    }
+
+    file << p.id << ','
+         << p.name << ','
+         << p.arrivalTime << ','
+         << p.burstTime << ','
+         << p.priority << '\n';
+
+    return file.good();
+}
+
+
+#include <fstream>
+#include <sstream>
+#include <string>
+using namespace std;
+
+// Trả về:
+//  1: Đọc thành công
+//  0: Hết file
+// -1: Dữ liệu không hợp lệ
+
+int readProcess(ifstream& file, Process& p){
+    string line;
+
+    if (!getline(file, line)){
+        if (file.eof())
+            return 0;
+        return -1;
+    }
+
+    istringstream iss(line);
+
+    int id, arrival, burst, priority;
+    string name;
+    char sep1, sep2, sep3, sep4;
+
+    if (!(iss >> id >> sep1) || sep1 != ',')
+        return -1;
+
+    if (!getline(iss, name, ','))
+        return -1;
+
+    if (!(iss >> arrival >> sep2
+              >> burst >> sep3
+              >> priority))
+        return -1;
+
+    // Kiểm tra các dấu phân cách còn lại
+    if (sep2 != ',' || sep3 != ',')
+        return -1;
+
+    // Kiểm tra dữ liệu hợp lệ
+    if (id <= 0 || arrival < 0 ||
+        burst <= 0 || priority < 0)
+        return -1;
+
+    p = Process(id, name, arrival, burst, priority);
+    p.remainingTime = p.burstTime;
+    p.completionTime = 0;
+    p.waitingTime = 0;
+
+    return 1;
+}
+
+
+bool Scheduler::saveToFile() const{
+    ofstream normalFile("data/normal.txt");
+    ofstream priorityFile("data/priority.txt");
+
+    if (!normalFile || !priorityFile){
+        cout << "Cannot open files for saving.\n";
+        return false;
+    }
+
+    // Ghi hang doi normal
+    const QueueNode* temp = nq.getFront();
+    while (temp != nullptr){
+        if (temp->data.priority != 0){
+            cout << "Invalid process in normal queue.\n";
+            return false;
+        }
+
+        if (!writeProcess(normalFile, temp->data)){
+            cout << "Error writing normal.txt\n";
+            return false;
+        }
+        temp = temp->next;
+    }
+
+    // Ghi hang doi priority
+    temp = pq.getFront();
+    while (temp != nullptr){
+        if (temp->data.priority <= 0){
+            cout << "Invalid process in priority queue.\n";
+            return false;
+        }
+
+        if (!writeProcess(priorityFile, temp->data))
+        {
+            cout << "Error writing priority.txt\n";
+            return false;
+        }
+
+        temp = temp->next;
+    }
+
+    normalFile.close();
+    priorityFile.close();
+
+    if (!normalFile || !priorityFile){
+        cout << "Error closing files.\n";
+        return false;
+    }
+    return true;
+}
+
+
+bool Scheduler::loadFromFile(){
+    NormalQueue tempNormal;
+    PriorityQueue tempPriority;
+    Process p;
+    int status;
+
+    ifstream normalFile("data/normal.txt");
+    ifstream priorityFile("data/priority.txt");
+
+    // Kiem tra ca hai file
+    if (!normalFile || !priorityFile){
+        cout << "Cannot open files for loading.\n";
+        return false;
+    }
+
+    // Doc normal.txt
+    while (true){
+        status = readProcess(normalFile, p);
+
+        if (status == 0)
+            break;
+
+        if (status == -1){
+            cout << "Error reading normal.txt\n";
+            return false;
+        }
+
+        if (p.priority != 0){
+            cout << "Invalid data in normal.txt\n";
+            return false;
+        }
+        tempNormal.enqueue(p);
+    }
+
+    // Doc priority.txt
+    while (true){
+        status = readProcess(priorityFile, p);
+
+        if (status == 0)
+            break;
+
+        if (status == -1){
+            cout << "Error reading priority.txt\n";
+            return false;
+        }
+
+        if (p.priority <= 0){
+            cout << "Invalid data in priority.txt\n";
+            return false;
+        }
+        tempPriority.insert(p);
+    }
+
+    normalFile.close();
+    priorityFile.close();
+
+    // Cap nhat hang doi chinh sau khi doc thanh cong
+    nq.clear();
+    pq.clear();
+
+    while (!tempNormal.isEmpty())
+        nq.enqueue(tempNormal.dequeue());
+
+    while (!tempPriority.isEmpty())
+        pq.insert(tempPriority.dequeue());
+
+    history.clear();
+    currentTime = 0;
+
+    return true;
+}
+
 //Feature 1
 void Scheduler::addProcess() {
+	cout << "===== ADD PROCESS =====\n";
 	int n = readIntegerFromZero("Input the number of process need to add (Enter 0 to back): ");
 
 	if (n == 0) {
@@ -82,12 +285,19 @@ void Scheduler::addProcess() {
 		}
 	}
 	
+	if (!saveToFile()){
+		cout << "Error while saving";
+		waitForEnter();
+		return;
+	}
+	
 	cout << "Process added successfully.\n";
     waitForEnter();
 }
 
 //Feature 2
 void Scheduler::removeProcess(){
+	cout << "===== REMOVE PROCESS =====\n";
     int id;
     int checkId;
 
@@ -109,12 +319,19 @@ void Scheduler::removeProcess(){
     else if (checkId == IN_PRIORITY_QUEUE)
         pq.removeById(id);
 
+	if (!saveToFile()){
+		cout << "Error while saving";
+		waitForEnter();
+		return;
+	}
+
     cout << "Process removed successfully.\n";
     waitForEnter();
 }
 
 //Feature 3
 void Scheduler::updateProcess(){
+	cout << "===== UPDATE PROCESS =====\n";
     int id;
     int checkId;
 
@@ -181,12 +398,19 @@ void Scheduler::updateProcess(){
     if (updatedProcess.priority == 0) nq.enqueue(updatedProcess);
     else pq.insert(updatedProcess);
 
+	if (!saveToFile()){
+		cout << "Error while saving";
+		waitForEnter();
+		return;
+	}
+
     cout << "\nProcess updated successfully.\n";
     waitForEnter();
 }
 
 //Feature 4
 void Scheduler::displayProcessById(){
+	cout << "===== DISPLAY PROCESS BY ID =====\n";
     int id = readIntegerFromZero("Input the ID of process need to display (Enter 0 to back): ");
 
     if (id == 0){
@@ -232,6 +456,7 @@ void Scheduler::displayProcessById(){
 
 //Feature 5
 void Scheduler::displayProcessByName(){
+	cout << "===== DISPLAY PROCESS BY NAME =====\n";
     string keyword;
 
     cout << "Input the process name to search (press ENTER to back main menu): ";
@@ -299,6 +524,7 @@ void Scheduler::displayProcessByName(){
 
 //Feature 6
 void Scheduler::setNewQuantumTime(){
+	cout << "===== SET NEW QUANTUM TIME =====\n";
 	cout << "Old quantum time: q = " << getTimeQuantum();
 	int quantum = readIntegerFromOne("\n==>Enter new quantum time for Round-Robin simulation with normal processes: ");
 	setTimeQuantum (quantum);
@@ -308,6 +534,7 @@ void Scheduler::setNewQuantumTime(){
 
 //Feature 7
 void Scheduler::clearProcesses(){
+	cout << "===== CLEAR ALL PROCESSES =====\n";
     if (nq.isEmpty() && pq.isEmpty() && history.empty()){
         cout << "\nThere are no processes to clear.\n";
         waitForEnter();
@@ -317,6 +544,12 @@ void Scheduler::clearProcesses(){
     nq.clear();
     pq.clear();
     history.clear();
+    
+    if (!saveToFile()){
+		cout << "Error while saving";
+		waitForEnter();
+		return;
+	}
 
     cout << "\nAll processes and execution history have been cleared successfully.\n";
     waitForEnter();
@@ -324,9 +557,11 @@ void Scheduler::clearProcesses(){
 
 //Feature 8
 void Scheduler::displayProcesses() const{
-    cout << "\n========== NORMAL QUEUE ==========\n";
+    cout << "\n========== DISPLAY ALL PROCESSES ==========\n";
+    
+    cout << "\n========== NORMAL PROCESSES ==========\n";
     if (nq.isEmpty())
-        cout << "***Normal Queue is empty.\n";
+        cout << "***Normal process Queue is empty.\n";
     else{
         const QueueNode* temp = nq.getFront();
         while (temp != nullptr){
@@ -345,9 +580,9 @@ void Scheduler::displayProcesses() const{
         }
     }
 
-    cout << "\n========== PRIORITY QUEUE ==========\n";
+    cout << "\n========== PRIORITY PROCESS ==========\n";
     if (pq.isEmpty())
-        cout << "***Priority Queue is empty.\n";
+        cout << "***Priority process Queue is empty.\n";
     else{
         const QueueNode* temp = pq.getFront();
 
@@ -372,58 +607,43 @@ void Scheduler::displayProcesses() const{
 }
 
 //Feature 9
-void Scheduler::runSimulation()
-{
-    // =========================================================
-    // 1. Check whether there are any processes
-    // =========================================================
+void Scheduler::runSimulation(){
+	cout << "\n========== RUN SIMULATION ==========\n";
 
-    if (nq.isEmpty() && pq.isEmpty())
-    {
+    // 1. Check whether there are any processes
+    if (nq.isEmpty() && pq.isEmpty()){
         cout << "\nThere are no processes to simulate.\n";
         waitForEnter();
         return;
     }
 
-    // =========================================================
     // 2. Reset simulation
-    // =========================================================
-
     currentTime = 0;
     history.clear();
 
-    // =========================================================
     // 3. Copy all processes from Normal Queue and Priority Queue
-    //
     // IMPORTANT:
     // We only COPY the processes.
     // The original nq and pq will NOT be changed.
-    // =========================================================
-
     vector<Process> processes;
 
     // Copy Normal Queue
     const QueueNode* temp = nq.getFront();
-
-    while (temp != nullptr)
-    {
+    while (temp != nullptr){
         Process process = temp->data;
 
         // Reset simulation information
         process.remainingTime = process.burstTime;
         process.completionTime = 0;
         process.waitingTime = 0;
-
+        
         processes.push_back(process);
-
         temp = temp->next;
     }
 
     // Copy Priority Queue
     temp = pq.getFront();
-
-    while (temp != nullptr)
-    {
+    while (temp != nullptr){
         Process process = temp->data;
 
         // Reset simulation information
@@ -432,14 +652,10 @@ void Scheduler::runSimulation()
         process.waitingTime = 0;
 
         processes.push_back(process);
-
         temp = temp->next;
     }
 
-    // =========================================================
     // 4. Prepare simulation data
-    // =========================================================
-
     int totalProcesses = static_cast<int>(processes.size());
     int completedProcesses = 0;
 
@@ -475,19 +691,16 @@ void Scheduler::runSimulation()
     );
 
     cout << "\n========== START SIMULATION ==========\n";
-
     // =========================================================
     // 5. Main simulation loop
     // =========================================================
 
-    while (completedProcesses < totalProcesses)
-    {
+    while (completedProcesses < totalProcesses){
         // =====================================================
         // 5.1 Add newly arrived Normal Processes
         // =====================================================
 
-        for (int i = 0; i < totalProcesses; i++)
-        {
+        for (int i = 0; i < totalProcesses; i++){
             // Only Normal Processes
             if (processes[i].priority != 0)
                 continue;
@@ -514,8 +727,7 @@ void Scheduler::runSimulation()
 
         int priorityIndex = -1;
 
-        for (int i = 0; i < totalProcesses; i++)
-        {
+        for (int i = 0; i < totalProcesses; i++){
             // Only Priority Processes
             if (processes[i].priority <= 0)
                 continue;
@@ -560,8 +772,7 @@ void Scheduler::runSimulation()
         // - Runs until completion
         // =====================================================
 
-        if (priorityIndex != -1)
-        {
+        if (priorityIndex != -1){
             Process& process = processes[priorityIndex];
 
             int startTime = currentTime;
@@ -616,8 +827,7 @@ void Scheduler::runSimulation()
         // Run Normal Process using Round Robin
         // =====================================================
 
-        if (!normalReady.empty())
-        {
+        if (!normalReady.empty()){
             // Get the first process in Ready Queue
             int normalIndex = normalReady.front();
 
@@ -648,27 +858,16 @@ void Scheduler::runSimulation()
             // Save this CPU execution segment
             // =================================================
 
-            history.push_back({
-                process,
-                startTime,
-                currentTime
-            });
+            history.push_back({ process, startTime, currentTime});
 
-            cout << "\nProcess "
-                 << process.id
-                 << " (" << process.name << ")"
-                 << " [Normal]"
-                 << " runs from "
-                 << startTime
-                 << " to "
-                 << currentTime;
+            cout << "\nProcess " << process.id << " (" << process.name << ")"
+                 << " [Normal]" << " runs from " << startTime << " to " << currentTime;
 
             // =================================================
             // Process completed
             // =================================================
 
-            if (process.remainingTime == 0)
-            {
+            if (process.remainingTime == 0){
                 process.completionTime = currentTime;
 
                 process.waitingTime =
@@ -727,67 +926,45 @@ void Scheduler::runSimulation()
 
     cout << "\n\n========== SIMULATION COMPLETED ==========\n";
 
-    cout << "Total execution time: "
-         << currentTime
-         << '\n';
+    cout << "Total execution time: " << currentTime << '\n';
 
     waitForEnter();
 }
 
 //Feature 10
-void Scheduler::displayExecutionHistory() const
-{
-    if (history.empty())
-    {
+void Scheduler::displayExecutionHistory() const{
+	cout << "\n===== DISPLAY EXECUTION HISTORY =====\n";
+    if (history.empty()){
         cout << "\nExecution history is empty.\n";
         waitForEnter();
         return;
     }
 
-    cout << "\n========== EXECUTION HISTORY ==========\n";
-
-    for (const HistoryRecord& record : history)
-    {
-        cout << "Process "
-             << record.process.id
-             << " (" << record.process.name << ")"
-             << ": "
-             << record.startTime
-             << " -> "
-             << record.endTime
-             << '\n';
+    cout << "\\nn========== EXECUTION HISTORY ==========\n";
+    for (const HistoryRecord& record : history){
+        cout << "Process " << record.process.id << " (" << record.process.name << ")"
+             << ": " << record.startTime << " -> " << record.endTime << '\n';
     }
 
-    cout << "\n=============== GANTT CHART ===============\n";
-
-    cout << "|";
-
-    for (const HistoryRecord& record : history)
-    {
+    cout << "\n\n=============== GANTT CHART ===============\n|";
+    for (const HistoryRecord& record : history){
         cout << " P" << record.process.id << " |";
     }
 
     cout << '\n';
-
     cout << history[0].startTime;
 
-    for (const HistoryRecord& record : history)
-    {
+    for (const HistoryRecord& record : history){
         cout << "    " << record.endTime;
     }
-
-    cout << '\n';
-
-    cout << "=============================================\n";
-
+    cout << "\n=============================================\n";
     waitForEnter();
 }
 
 //Feature 11
-void Scheduler::displayStatistics() const
-{
-    if (history.empty())
-    {
+void Scheduler::displayStatistics() const{
+	cout << "\n===== DISPLAY STATISTICS =====\n";
+    if (history.empty()){
         cout << "\nThere is no simulation data to display statistics.\n";
         waitForEnter();
         return;
@@ -796,14 +973,11 @@ void Scheduler::displayStatistics() const
     // Lưu process duy nhất dựa trên ID
     vector<Process> completedProcesses;
 
-    for (const HistoryRecord& record : history)
-    {
+    for (const HistoryRecord& record : history){
         bool existed = false;
 
-        for (Process& process : completedProcesses)
-        {
-            if (process.id == record.process.id)
-            {
+        for (Process& process : completedProcesses){
+            if (process.id == record.process.id){
                 // Record xuất hiện sau có endTime lớn hơn,
                 // nên đây là completion time mới nhất.
                 process.completionTime = record.endTime;
@@ -812,18 +986,14 @@ void Scheduler::displayStatistics() const
             }
         }
 
-        if (!existed)
-        {
+        if (!existed){
             Process process = record.process;
-
             process.completionTime = record.endTime;
-
             completedProcesses.push_back(process);
         }
     }
 
-    int totalProcesses =
-        static_cast<int>(completedProcesses.size());
+    int totalProcesses = static_cast<int>(completedProcesses.size());
 
     int normalCount = 0;
     int priorityCount = 0;
@@ -832,38 +1002,28 @@ void Scheduler::displayStatistics() const
     double totalTurnaroundTime = 0.0;
 
     int minWaitingTime = completedProcesses[0].completionTime
-                       - completedProcesses[0].arrivalTime
-                       - completedProcesses[0].burstTime;
+                       - completedProcesses[0].arrivalTime - completedProcesses[0].burstTime;
 
     int maxWaitingTime = minWaitingTime;
 
     int minTurnaroundTime =
-        completedProcesses[0].completionTime
-        - completedProcesses[0].arrivalTime;
+        completedProcesses[0].completionTime - completedProcesses[0].arrivalTime;
 
     int maxTurnaroundTime = minTurnaroundTime;
 
     double normalWaitingTime = 0.0;
     double priorityWaitingTime = 0.0;
 
-    for (const Process& process : completedProcesses)
-    {
-        int waitingTime =
-            process.completionTime
-            - process.arrivalTime
-            - process.burstTime;
+    for (const Process& process : completedProcesses){
+        int waitingTime = process.completionTime - process.arrivalTime - process.burstTime;
 
-        int turnaroundTime =
-            process.completionTime
-            - process.arrivalTime;
+        int turnaroundTime = process.completionTime - process.arrivalTime;
 
-        if (process.priority == 0)
-        {
+        if (process.priority == 0){
             normalCount++;
             normalWaitingTime += waitingTime;
         }
-        else
-        {
+        else{
             priorityCount++;
             priorityWaitingTime += waitingTime;
         }
@@ -892,71 +1052,43 @@ void Scheduler::displayStatistics() const
 
     cout << "\n========== STATISTICS ==========\n";
 
-    cout << "\nTotal processes:             "
-         << totalProcesses << '\n';
-
-    cout << "Normal processes:            "
-         << normalCount << '\n';
-
-    cout << "Priority processes:          "
-         << priorityCount << '\n';
+    cout << "\nTotal processes:             " << totalProcesses << '\n';
+    cout << "Normal processes:            " << normalCount << '\n';
+    cout << "Priority processes:          " << priorityCount << '\n';
 
     cout << "\n------ WAITING TIME ------\n";
 
-    cout << "Average waiting time:        "
-         << fixed << setprecision(2)
-         << averageWaitingTime << '\n';
-
-    cout << "Minimum waiting time:        "
-         << minWaitingTime << '\n';
-
-    cout << "Maximum waiting time:        "
-         << maxWaitingTime << '\n';
+    cout << "Average waiting time:        " << fixed << setprecision(2) << averageWaitingTime << '\n';
+    cout << "Minimum waiting time:        " << minWaitingTime << '\n';
+    cout << "Maximum waiting time:        " << maxWaitingTime << '\n';
 
     cout << "\n------ TURNAROUND TIME ------\n";
 
-    cout << "Average turnaround time:     "
-         << averageTurnaroundTime << '\n';
-
-    cout << "Minimum turnaround time:     "
-         << minTurnaroundTime << '\n';
-
-    cout << "Maximum turnaround time:     "
-         << maxTurnaroundTime << '\n';
+    cout << "Average turnaround time:     " << averageTurnaroundTime << '\n';
+    cout << "Minimum turnaround time:     " << minTurnaroundTime << '\n';
+    cout << "Maximum turnaround time:     " << maxTurnaroundTime << '\n';
 
     cout << "\n------ BY QUEUE ------\n";
 
     cout << "Normal processes:\n";
-    cout << "    Count:                   "
-         << normalCount << '\n';
-
-    if (normalCount > 0)
-    {
-        cout << "    Average waiting time:    "
-             << normalWaitingTime / normalCount
-             << '\n';
+    cout << "    Count:                   " << normalCount << '\n';
+    if (normalCount > 0){
+        cout << "    Average waiting time:    " << normalWaitingTime / normalCount << '\n';
     }
-    else
-    {
+    else{
         cout << "    Average waiting time:    N/A\n";
     }
 
     cout << "\nPriority processes:\n";
-    cout << "    Count:                   "
-         << priorityCount << '\n';
-
-    if (priorityCount > 0)
-    {
+    cout << "    Count:                   "<< priorityCount << '\n';
+    if (priorityCount > 0){
         cout << "    Average waiting time:    "
              << priorityWaitingTime / priorityCount
              << '\n';
     }
-    else
-    {
+    else{
         cout << "    Average waiting time:    N/A\n";
     }
-
     cout << "\n================================\n";
-
     waitForEnter();
 }

@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cstdlib>
 #include "../header/consoleInput.h"
 #include "../header/consoleOutput.h"
 #include "../header/scheduler.h"
@@ -8,12 +9,20 @@ using namespace std;
 
 int main() {
     Scheduler scheduler;
-    int choice;
+    
+    //Load file
+    if (!scheduler.loadFromFile()){
+        cout << "Failed to load data.\n";
+		waitForEnter();
+    }
 
+	int choice;
     do {
+    	system("cls");
         showMenu();
-        choice = readIntegerInRange(0, 7, "==>Enter your choice: ");
+        choice = readIntegerInRange(0, 11, ">>> Enter your choice: ");
 
+		system("cls");
         switch (choice) {
             case 1:
                 scheduler.addProcess();

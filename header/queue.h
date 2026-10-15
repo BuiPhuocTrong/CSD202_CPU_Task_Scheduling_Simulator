@@ -3,6 +3,14 @@
 
 #include "process.h"
 
+/*
+This file including:
+1/ struct QueueNode
+2/ class Queue
+3/ class NormalQueue : public Queue
+4/ class PriorityQueue : public Queue
+*/
+
 struct QueueNode {
     Process data;
     QueueNode* next;
