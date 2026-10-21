@@ -1,0 +1,254 @@
+#include "../header/queue.h"
+#include <iostream>
+using namespace std;
+
+//Queue Node
+QueueNode::QueueNode(const Process& process) : data(process), next(nullptr) {}
+//Queue class
+Queue::Queue() : front(nullptr), rear(nullptr), count(0) {}
+
+Queue::~Queue() {
+	clear();
+}
+
+bool Queue::isEmpty() const {
+	return front == nullptr && count == 0;
+}
+
+int Queue::size() const {
+	return count;
+}
+
+void Queue::clear() {
+	QueueNode* current = front;
+
+	while (current != nullptr) {
+		QueueNode* temp = current;
+		current = current->next;
+		delete temp;
+	}
+
+	//restart
+	front = nullptr;
+	rear = nullptr;
+	count = 0;
+}
+
+QueueNode* Queue::getFront() const {
+	return front;
+}
+
+QueueNode* Queue::getRear() const {
+	return rear;
+}
+
+bool Queue::removeById(int id) {
+	if (isEmpty())
+		return false;
+
+	// Xóa node đầu
+	if (front->data.id == id) {
+		QueueNode* temp = front;
+
+		front = front->next;
+
+		delete temp;
+		count--;
+
+		if (count == 0)
+			rear = nullptr;
+
+		return true;
+	}
+
+	// Tìm node cần xóa
+	QueueNode* temp = front;
+
+	while (temp->next != nullptr) {
+		if (temp->next->data.id == id) {
+			QueueNode* cur = temp->next;
+
+			temp->next = cur->next;
+
+			// Nếu xóa node cuối
+			if (cur == rear)
+				rear = temp;
+
+			delete cur;
+			count--;
+
+			return true;
+		}
+
+		temp = temp->next;
+	}
+
+	return false;
+}
+
+const Process* Queue::findById(int id) const {
+	const QueueNode* temp = front;
+
+	while (temp != nullptr) {
+		if (temp->data.id == id) {
+			return &temp->data;
+		}
+
+		temp = temp->next;
+	}
+
+	return nullptr;
+}
+
+const Process* Queue::findArrivedProcess(int currentTime) const {
+	const QueueNode* temp = front;
+
+	while (temp != nullptr) {
+		if (temp->data.arrivalTime <= currentTime)
+			return &temp->data;
+
+		temp = temp->next;
+	}
+	return nullptr;
+}
+
+//NORMAL QUEUE
+void NormalQueue::enqueue(const Process& process) {
+	QueueNode* newNode = new QueueNode(process);
+
+	// Hang doi rong
+	if (isEmpty()) {
+		front = rear = newNode;
+	}
+	// Them vao dau neu process dung truoc front
+	else if (
+	    process.arrivalTime < front->data.arrivalTime ||
+	    (process.arrivalTime == front->data.arrivalTime &&
+	     process.burstTime < front->data.burstTime) ||
+	    (process.arrivalTime == front->data.arrivalTime &&
+	     process.burstTime == front->data.burstTime &&
+	     process.id < front->data.id)
+	) {
+		newNode->next = front;
+		front = newNode;
+	}
+	// Them vao giua hoac cuoi theo thu tu da chot
+	else {
+		QueueNode* current = front;
+
+		while (current->next != nullptr &&
+		        (current->next->data.arrivalTime < process.arrivalTime ||
+		         (current->next->data.arrivalTime == process.arrivalTime &&
+		          current->next->data.burstTime < process.burstTime) ||
+		         (current->next->data.arrivalTime == process.arrivalTime &&
+		          current->next->data.burstTime == process.burstTime &&
+		          current->next->data.id < process.id))) {
+			current = current->next;
+		}
+
+		newNode->next = current->next;
+		current->next = newNode;
+
+		if (newNode->next == nullptr) {
+			rear = newNode;
+		}
+	}
+
+	count++;
+}
+Process NormalQueue::dequeue() {
+	QueueNode* temp = front;
+
+	//Save data to return removed object information
+	Process process = temp->data;
+
+	front = front->next;
+	delete temp;
+	count--;
+
+	if (count == 0) {
+		rear = nullptr;
+	}
+
+	return process;
+}
+
+void PriorityQueue::insert(const Process& process) {
+	QueueNode* newNode = new QueueNode(process);
+
+	// Queue dang rong
+	if (isEmpty()) {
+		front = rear = newNode;
+		count++;
+		return;
+	}
+
+	// Them vao dau neu process dung truoc front
+	if (process.arrivalTime < front->data.arrivalTime ||
+	        (process.arrivalTime == front->data.arrivalTime &&
+	         process.priority > front->data.priority) ||
+	        (process.arrivalTime == front->data.arrivalTime &&
+	         process.priority == front->data.priority &&
+	         process.burstTime < front->data.burstTime) ||
+	        (process.arrivalTime == front->data.arrivalTime &&
+	         process.priority == front->data.priority &&
+	         process.burstTime == front->data.burstTime &&
+	         process.id < front->data.id)) {
+		newNode->next = front;
+		front = newNode;
+		count++;
+		return;
+	}
+
+	// Tim vi tri thich hop
+	QueueNode* current = front;
+
+	while (current->next != nullptr) {
+		QueueNode* nextNode = current->next;
+
+		if (process.arrivalTime < nextNode->data.arrivalTime ||
+		        (process.arrivalTime == nextNode->data.arrivalTime &&
+		         process.priority > nextNode->data.priority) ||
+		        (process.arrivalTime == nextNode->data.arrivalTime &&
+		         process.priority == nextNode->data.priority &&
+		         process.burstTime < nextNode->data.burstTime) ||
+		        (process.arrivalTime == nextNode->data.arrivalTime &&
+		         process.priority == nextNode->data.priority &&
+		         process.burstTime == nextNode->data.burstTime &&
+		         process.id < nextNode->data.id)) {
+			break;
+		}
+
+		current = current->next;
+	}
+
+	// Chen node vao vi tri tim duoc
+	newNode->next = current->next;
+	current->next = newNode;
+
+	// Cap nhat rear neu chen vao cuoi
+	if (newNode->next == nullptr) {
+		rear = newNode;
+	}
+
+	count++;
+}
+
+Process PriorityQueue::dequeue() {
+	QueueNode* temp = front;
+
+	Process process = temp->data;
+
+	front = front->next;
+
+	delete temp;
+
+	count--;
+
+	if (count == 0) {
+		rear = nullptr;
+	}
+
+	return process;
+}
+
