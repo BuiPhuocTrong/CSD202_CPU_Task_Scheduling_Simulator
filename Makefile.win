@@ -1,0 +1,46 @@
+# Project: CPU_Task_Scheduling_Simulator
+# Makefile created by Embarcadero Dev-C++ 6.3
+
+CPP      = g++.exe
+CC       = gcc.exe
+WINDRES  = windres.exe
+OBJ      = src/consoleInput.o src/consoleOutput.o src/main.o src/process.o src/queue.o src/scheduler.o src/validation.o
+LINKOBJ  = src/consoleInput.o src/consoleOutput.o src/main.o src/process.o src/queue.o src/scheduler.o src/validation.o
+LIBS     = -L"C:/Program Files (x86)/Embarcadero/Dev-Cpp/TDM-GCC-64/lib" -L"C:/Program Files (x86)/Embarcadero/Dev-Cpp/TDM-GCC-64/x86_64-w64-mingw32/lib" -static-libgcc
+INCS     = -I"C:/Program Files (x86)/Embarcadero/Dev-Cpp/TDM-GCC-64/include" -I"C:/Program Files (x86)/Embarcadero/Dev-Cpp/TDM-GCC-64/x86_64-w64-mingw32/include" -I"C:/Program Files (x86)/Embarcadero/Dev-Cpp/TDM-GCC-64/lib/gcc/x86_64-w64-mingw32/9.2.0/include"
+CXXINCS  = -I"C:/Program Files (x86)/Embarcadero/Dev-Cpp/TDM-GCC-64/include" -I"C:/Program Files (x86)/Embarcadero/Dev-Cpp/TDM-GCC-64/x86_64-w64-mingw32/include" -I"C:/Program Files (x86)/Embarcadero/Dev-Cpp/TDM-GCC-64/lib/gcc/x86_64-w64-mingw32/9.2.0/include" -I"C:/Program Files (x86)/Embarcadero/Dev-Cpp/TDM-GCC-64/lib/gcc/x86_64-w64-mingw32/9.2.0/include/c++"
+BIN      = CPU_Task_Scheduling_Simulator.exe
+CXXFLAGS = $(CXXINCS) 
+CFLAGS   = $(INCS) 
+DEL      = C:\Program Files (x86)\Embarcadero\Dev-Cpp\devcpp.exe INTERNAL_DEL
+
+.PHONY: all all-before all-after clean clean-custom
+
+all: all-before $(BIN) all-after
+
+clean: clean-custom
+	${DEL} $(OBJ) $(BIN)
+
+$(BIN): $(OBJ)
+	$(CPP) $(LINKOBJ) -o $(BIN) $(LIBS)
+
+src/consoleInput.o: src/consoleInput.cpp
+	$(CPP) -c src/consoleInput.cpp -o src/consoleInput.o $(CXXFLAGS)
+
+src/consoleOutput.o: src/consoleOutput.cpp
+	$(CPP) -c src/consoleOutput.cpp -o src/consoleOutput.o $(CXXFLAGS)
+
+src/main.o: src/main.cpp
+	$(CPP) -c src/main.cpp -o src/main.o $(CXXFLAGS)
+
+src/process.o: src/process.cpp
+	$(CPP) -c src/process.cpp -o src/process.o $(CXXFLAGS)
+
+src/queue.o: src/queue.cpp
+	$(CPP) -c src/queue.cpp -o src/queue.o $(CXXFLAGS)
+
+src/scheduler.o: src/scheduler.cpp
+	$(CPP) -c src/scheduler.cpp -o src/scheduler.o $(CXXFLAGS)
+
+src/validation.o: src/validation.cpp
+	$(CPP) -c src/validation.cpp -o src/validation.o $(CXXFLAGS)

@@ -19,13 +19,15 @@ struct HistoryRecord{
     Process process;
     int startTime;
     int endTime;
+    int remainTime;
 };
 
 class Scheduler {
 private:
     NormalQueue nq;
     PriorityQueue pq;
-    std::vector<HistoryRecord> history; //use vector for history storage then for DISPLAY
+    std::vector<HistoryRecord> history_normal; 
+	std::vector<HistoryRecord> history_priority;
     
     int currentTime; //use to compare with arrival time
     int timeQuantum; //can use set feature to re-set

@@ -11,7 +11,7 @@ void showMenu() {
     cout << "5.  Display process by name                       =\n";
     cout << "6.  Set time quantum                              =\n";
     cout << "7.  Clear all processes                           =\n";
-    cout << "8.  Display all processes                         =\n";
+    cout << "8.  Display all processes after sim               =\n";
     cout << "9.  Run simulation                                =\n";
     cout << "10. Display execution history                     =\n";
     cout << "11. Display statistics                            =\n";

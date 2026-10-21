@@ -114,37 +114,48 @@ const Process* Queue::findArrivedProcess(int currentTime) const {
 
 //NORMAL QUEUE
 void NormalQueue::enqueue(const Process& process) {
-    QueueNode* newNode = new QueueNode(process);
+	QueueNode* newNode = new QueueNode(process);
 
-    // Hàng đợi rỗng
-    if (isEmpty()) {
-        front = rear = newNode;
-    }
-    // Thêm vào đầu nếu đến sớm hơn front
-    else if (process.arrivalTime < front->data.arrivalTime) {
-        newNode->next = front;
-        front = newNode;
-    }
-    // Thêm vào giữa hoặc cuối
-    else {
-        QueueNode* current = front;
+	// Hang doi rong
+	if (isEmpty()) {
+		front = rear = newNode;
+	}
+	// Them vao dau neu process dung truoc front
+	else if (
+	    process.arrivalTime < front->data.arrivalTime ||
+	    (process.arrivalTime == front->data.arrivalTime &&
+	     process.burstTime < front->data.burstTime) ||
+	    (process.arrivalTime == front->data.arrivalTime &&
+	     process.burstTime == front->data.burstTime &&
+	     process.id < front->data.id)
+	) {
+		newNode->next = front;
+		front = newNode;
+	}
+	// Them vao giua hoac cuoi theo thu tu da chot
+	else {
+		QueueNode* current = front;
 
-        while (current->next != nullptr &&
-               current->next->data.arrivalTime <= process.arrivalTime) {
-            current = current->next;
-        }
+		while (current->next != nullptr &&
+		        (current->next->data.arrivalTime < process.arrivalTime ||
+		         (current->next->data.arrivalTime == process.arrivalTime &&
+		          current->next->data.burstTime < process.burstTime) ||
+		         (current->next->data.arrivalTime == process.arrivalTime &&
+		          current->next->data.burstTime == process.burstTime &&
+		          current->next->data.id < process.id))) {
+			current = current->next;
+		}
 
-        newNode->next = current->next;
-        current->next = newNode;
+		newNode->next = current->next;
+		current->next = newNode;
 
-        if (newNode->next == nullptr) {
-            rear = newNode;
-        }
-    }
+		if (newNode->next == nullptr) {
+			rear = newNode;
+		}
+	}
 
-    count++;
+	count++;
 }
-
 Process NormalQueue::dequeue() {
 	QueueNode* temp = front;
 
@@ -165,49 +176,57 @@ Process NormalQueue::dequeue() {
 void PriorityQueue::insert(const Process& process) {
 	QueueNode* newNode = new QueueNode(process);
 
-	// Queue đang rỗng
+	// Queue dang rong
 	if (isEmpty()) {
-		front = newNode;
-		rear = newNode;
+		front = rear = newNode;
 		count++;
 		return;
 	}
 
-	/*
-	    newNode phải đứng trước front nếu:
-
-	    1. priority cao hơn
-	    hoặc
-	    2. cùng priority nhưng arrivalTime nhỏ hơn
-	*/
-	if (process.priority > front->data.priority ||
-	        (process.priority == front->data.priority &&
-	         process.arrivalTime < front->data.arrivalTime)) {
+	// Them vao dau neu process dung truoc front
+	if (process.arrivalTime < front->data.arrivalTime ||
+	        (process.arrivalTime == front->data.arrivalTime &&
+	         process.priority > front->data.priority) ||
+	        (process.arrivalTime == front->data.arrivalTime &&
+	         process.priority == front->data.priority &&
+	         process.burstTime < front->data.burstTime) ||
+	        (process.arrivalTime == front->data.arrivalTime &&
+	         process.priority == front->data.priority &&
+	         process.burstTime == front->data.burstTime &&
+	         process.id < front->data.id)) {
 		newNode->next = front;
 		front = newNode;
 		count++;
 		return;
 	}
 
-	// Tìm vị trí thích hợp
+	// Tim vi tri thich hop
 	QueueNode* current = front;
 
 	while (current->next != nullptr) {
 		QueueNode* nextNode = current->next;
 
-		if (process.priority > nextNode->data.priority ||
-		        (process.priority == nextNode->data.priority &&
-		         process.arrivalTime < nextNode->data.arrivalTime)) {
+		if (process.arrivalTime < nextNode->data.arrivalTime ||
+		        (process.arrivalTime == nextNode->data.arrivalTime &&
+		         process.priority > nextNode->data.priority) ||
+		        (process.arrivalTime == nextNode->data.arrivalTime &&
+		         process.priority == nextNode->data.priority &&
+		         process.burstTime < nextNode->data.burstTime) ||
+		        (process.arrivalTime == nextNode->data.arrivalTime &&
+		         process.priority == nextNode->data.priority &&
+		         process.burstTime == nextNode->data.burstTime &&
+		         process.id < nextNode->data.id)) {
 			break;
 		}
 
 		current = current->next;
 	}
 
+	// Chen node vao vi tri tim duoc
 	newNode->next = current->next;
 	current->next = newNode;
 
-	// Nếu thêm vào cuối thì cập nhật rear
+	// Cap nhat rear neu chen vao cuoi
 	if (newNode->next == nullptr) {
 		rear = newNode;
 	}
