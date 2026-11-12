@@ -1,19 +1,22 @@
 #include "../header/validation.h"
 
 bool isIntegerBelongRange(const std::string& s, int min, int max) {
-    try {
-        size_t pos;
-        int num = stoi(s, &pos);
-
-        // Check if the whole string is an integer
-        if (pos != s.length())
-            return false;
-
-        return (num >= min && num <= max);
+    if (s.empty()) return false;
+    size_t i = 0;
+    bool negative = false;
+    if (s[0] == '-' || s[0] == '+') {
+        negative = (s[0] == '-');
+        i++;
     }
-    catch (...) {
-        return false;
+    if (i == s.length()) return false;
+    long long num = 0;
+    for (; i < s.length(); i++) {
+        if (s[i] < '0' || s[i] > '9') return false;
+        num = num * 10 + (s[i] - '0');
+        long long value = negative ? -num : num;
+        if (value < min || value > max) return false;
     }
+    return true;
 }
 
 bool isValidBurstTime(int burstTime) {
@@ -26,8 +29,4 @@ bool isValidArrivalTime(int arrivalTime) {
 
 bool isValidPriority(int priority) {
     return priority >= 1;
-}
-
-bool isValidTimeQuantum(int quantum) {
-    return quantum > 0;
 }

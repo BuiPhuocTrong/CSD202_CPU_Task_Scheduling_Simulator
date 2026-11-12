@@ -19,7 +19,6 @@ struct HistoryRecord{
     Process process;
     int startTime;
     int endTime;
-    int remainTime;
 };
 
 class Scheduler {
@@ -32,8 +31,6 @@ private:
     int currentTime; //use to compare with arrival time
     int timeQuantum; //can use set feature to re-set
 
-    void resetSimulation();
-
 public:
     Scheduler(int quantum = 2);
     
@@ -44,10 +41,7 @@ public:
     void setTimeQuantum(int quantum); //help for F6
     int getTimeQuantum() const;
     
-    bool hasProcesses(const PriorityQueue& pq) const;
-    bool hasProcesses(const NormalQueue& nq)const;
 	int isExistedId(int id) const;
-	bool isEmptyBothQueue();
 	
     //CRUD feature
     void addProcess(); //F1
@@ -62,6 +56,7 @@ public:
 	void runSimulation(); //F9
     void displayExecutionHistory() const; //F10
     void displayStatistics() const; //F11
+    void recoverBackup();
 };
 
 #endif

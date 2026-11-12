@@ -1,5 +1,6 @@
 #include <iostream>
 #include <limits>
+#include <cstdlib>
 #include "../header/consoleInput.h"
 #include "../header/validation.h"
 #include "../header/constants.h"
@@ -14,7 +15,10 @@ int readIntegerInRange(int min, int max, const string& prompt) {
 
     while (true) {
         cout << prompt;
-        getline(cin, input);
+        if (!getline(cin, input)) { // input stream closed (EOF): stop instead of looping forever
+            cout << "\nInput ended. Exiting program..." << endl;
+            exit(0);
+        }
 
         if (!isIntegerBelongRange(input, min, max)) {
             cout << "Only enter a number from "
@@ -39,7 +43,10 @@ string readString(const string& prompt) {
     while (true)
     {
         cout << prompt;
-        getline(cin, input);
+        if (!getline(cin, input)) { // input stream closed (EOF)
+            cout << "\nInput ended. Exiting program..." << endl;
+            exit(0);
+        }
 
         if (input.empty())
         {
@@ -84,5 +91,4 @@ Process readProcessFromConsole(int id) { // not including input ID, bcs we need 
 void waitForEnter(){
     cout << "\nPress Enter to return...";
     cin.ignore(numeric_limits<streamsize>::max(), '\n');
-    cin.get();
 }

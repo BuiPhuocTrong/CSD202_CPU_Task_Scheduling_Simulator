@@ -24,7 +24,4 @@ Process::Process(int processId,
 	completionTime(-1),
     waitingTime(0){}
 
-bool Process::isCompleted() const {
-    return remainingTime <= 0;
-}
 

@@ -15,6 +15,7 @@ void showMenu() {
     cout << "9.  Run simulation                                =\n";
     cout << "10. Display execution history                     =\n";
     cout << "11. Display statistics                            =\n";
+    cout << "12. Recover backup file                           =\n";
     cout << "0. Exit                                           =";
     cout << "\n===================================================\n";
 }

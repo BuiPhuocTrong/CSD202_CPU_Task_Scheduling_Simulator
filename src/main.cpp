@@ -20,7 +20,7 @@ int main() {
     do {
     	system("cls");
         showMenu();
-        choice = readIntegerInRange(0, 11, ">>> Enter your choice: ");
+        choice = readIntegerInRange(0, 12, ">>> Enter your choice: ");
 
 		system("cls");
         switch (choice) {
@@ -65,8 +65,10 @@ int main() {
                 break;    
             case 11:
                 scheduler.displayStatistics();
-                break;      
-
+                break;
+            case 12:
+                scheduler.recoverBackup() ;
+                break;
             case 0:
                 cout <<"Exiting program...";
                 break;

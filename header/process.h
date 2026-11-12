@@ -17,8 +17,6 @@ struct Process {
 
     Process();
     Process(int processId, const string& processName, int arrival, int burst, int processPriority = 0);
-
-    bool isCompleted() const;
 };
 
 #endif

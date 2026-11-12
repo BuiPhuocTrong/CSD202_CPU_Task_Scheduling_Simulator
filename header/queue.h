@@ -35,11 +35,9 @@ public:
     void clear();
     int size() const;
     QueueNode* getFront() const;
-    QueueNode* getRear() const;
     
     bool removeById(int id);
     const Process* findById(int id) const;
-    const Process* findArrivedProcess(int currentTime) const;
 };
 
 class NormalQueue : public Queue {

@@ -38,10 +38,6 @@ QueueNode* Queue::getFront() const {
 	return front;
 }
 
-QueueNode* Queue::getRear() const {
-	return rear;
-}
-
 bool Queue::removeById(int id) {
 	if (isEmpty())
 		return false;
@@ -97,18 +93,6 @@ const Process* Queue::findById(int id) const {
 		temp = temp->next;
 	}
 
-	return nullptr;
-}
-
-const Process* Queue::findArrivedProcess(int currentTime) const {
-	const QueueNode* temp = front;
-
-	while (temp != nullptr) {
-		if (temp->data.arrivalTime <= currentTime)
-			return &temp->data;
-
-		temp = temp->next;
-	}
 	return nullptr;
 }
 
