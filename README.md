@@ -42,13 +42,6 @@ Project/
     └── validation.cpp                  isIntegerBelongRange() and value checks
 ```
 
-## Build and run
-
-- **Dev-C++ 6.3:** open the `.dev` file, then **Execute > Rebuild All**, then run.
-- **g++:** `g++ -std=c++17 src/*.cpp -o sim`
-- Run from the project folder, so the program finds `data/`.
-- After editing any `.h` file, always **Rebuild All** (stale `.o` files can crash the program).
-
 ## Terms
 
 `ID` process number | `AT` arrival time | `BT` burst time (CPU time needed) | `RT` remaining time |
